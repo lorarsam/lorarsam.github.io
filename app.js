@@ -5,10 +5,15 @@ const NIVELES = [
 ];
 const STORAGE_KEY = 'juego-memoria-partida';
 const HISTORY_KEY = 'juego-memoria-historial';
+const AUDIO_KEY = 'juego-memoria-audio-muteado';
 const AUDIO_SRC = 'cancion_juego.mp3';
 const ACTION_LABELS = {
-  start: '▶ Start',
-  reset: '↻ Reset'
+  start: 'Start',
+  reset: 'Reset'
+};
+const UI_ICONS = {
+  play: 'iconos/play.svg',
+  mute: 'iconos/mute.svg'
 };
 const ICONOS = crearIconos(Math.max.apply(null, NIVELES.map(function (nivel) {
   return nivel.pares;
@@ -26,6 +31,7 @@ const state = {
   bloqueado: false,
   paresEncontrados: 0,
   iniciado: false,
+  audioMuteado: false,
   nivel: NIVELES[0]
 };
 
@@ -33,6 +39,7 @@ const tablero = document.getElementById('tablero');
 const niveles = document.getElementById('niveles');
 const inputNombre = document.getElementById('nombre');
 const botonIniciar = document.getElementById('iniciar');
+const botonAudio = document.getElementById('audio-toggle');
 const contadorNivel = document.getElementById('nivel');
 const contadorMovimientos = document.getElementById('movimientos');
 const contadorPares = document.getElementById('pares');
@@ -40,19 +47,21 @@ const mensaje = document.getElementById('mensaje');
 const historial = document.getElementById('historial');
 
 botonIniciar.addEventListener('click', manejarAccionPrincipal);
+botonAudio.addEventListener('click', alternarAudio);
 inputNombre.addEventListener('input', manejarCambioNombre);
 // FIX: delegación de eventos; no se crea un listener por cada carta en cada render.
 tablero.addEventListener('click', manejarClickTablero);
 niveles.addEventListener('click', manejarCambioNivel);
 document.addEventListener('keydown', manejarTeclado);
 
+cargarAudio();
 renderNiveles();
 renderHistorial();
 
 if (!cargarPartida()) {
-  render();
-  mensaje.textContent = 'Escribe tu nombre y presiona Start';
+  prepararTableroBloqueado('Escribe tu nombre y presiona Start', true);
 } else if (!state.iniciado) {
+  prepararTableroBloqueado('Escribe tu nombre y presiona Start', false);
   mensaje.textContent = 'Escribe tu nombre y presiona Start';
 }
 
@@ -90,6 +99,20 @@ function iniciarJuego(reiniciarMusica) {
 
 function reiniciarPartida() {
   iniciarJuego(false);
+}
+
+function prepararTableroBloqueado(texto, regenerar) {
+  if (regenerar || state.cartas.length === 0) {
+    state.cartas = crearMazo();
+  }
+
+  state.volteadas = [];
+  state.movimientos = 0;
+  state.bloqueado = true;
+  state.paresEncontrados = 0;
+  state.iniciado = false;
+  mensaje.textContent = texto;
+  render();
 }
 
 function crearMazo() {
@@ -134,6 +157,7 @@ function render() {
   const fragmento = document.createDocumentFragment();
 
   tablero.dataset.nivel = String(state.nivel.id);
+  tablero.classList.toggle('board-locked', !state.iniciado);
 
   state.cartas.forEach(function (carta, indice) {
     const boton = document.createElement('button');
@@ -167,6 +191,7 @@ function render() {
   contadorMovimientos.textContent = String(state.movimientos);
   contadorPares.textContent = state.paresEncontrados + '/' + state.nivel.pares;
   actualizarBotonPrincipal();
+  actualizarBotonAudio();
   actualizarBotonesNivel();
 }
 
@@ -179,6 +204,17 @@ function crearImagenCarta(carta) {
   imagen.draggable = false;
 
   return imagen;
+}
+
+function crearIconoUI(src, alt) {
+  const icono = document.createElement('img');
+
+  icono.className = 'btn-icon';
+  icono.src = src;
+  icono.alt = alt;
+  icono.draggable = false;
+
+  return icono;
 }
 
 function renderNiveles() {
@@ -246,15 +282,31 @@ function manejarCambioNivel(event) {
   if (state.iniciado) {
     iniciarJuego(false);
   } else {
-    render();
+    prepararTableroBloqueado(inputNombre.value.trim() ? 'Presiona Start para iniciar' : 'Escribe tu nombre para iniciar', true);
     guardarPartida();
   }
 }
 
 function actualizarBotonPrincipal() {
-  botonIniciar.textContent = state.iniciado ? ACTION_LABELS.reset : ACTION_LABELS.start;
+  const texto = document.createElement('span');
+
+  texto.textContent = state.iniciado ? ACTION_LABELS.reset : ACTION_LABELS.start;
+
+  if (state.iniciado) {
+    botonIniciar.replaceChildren(texto);
+  } else {
+    botonIniciar.replaceChildren(crearIconoUI(UI_ICONS.play, 'Iniciar'), texto);
+  }
+
   botonIniciar.classList.toggle('btn-reset', state.iniciado);
   botonIniciar.classList.toggle('btn-start', !state.iniciado);
+  botonIniciar.setAttribute('aria-label', state.iniciado ? 'Reiniciar juego' : 'Iniciar juego');
+}
+
+function actualizarBotonAudio() {
+  botonAudio.replaceChildren(crearIconoUI(UI_ICONS.mute, state.audioMuteado ? 'Activar musica' : 'Silenciar musica'));
+  botonAudio.classList.toggle('audio-muted', state.audioMuteado);
+  botonAudio.setAttribute('aria-label', state.audioMuteado ? 'Activar musica' : 'Silenciar musica');
 }
 
 function actualizarBotonesNivel() {
@@ -273,16 +325,9 @@ function manejarCambioNombre() {
   }
 
   state.nombre = nombre;
-  state.iniciado = false;
-  state.cartas = [];
-  state.volteadas = [];
-  state.movimientos = 0;
-  state.paresEncontrados = 0;
-  state.bloqueado = false;
   detenerMusica();
   localStorage.removeItem(STORAGE_KEY);
-  mensaje.textContent = nombre ? 'Presiona Start para iniciar' : 'Escribe tu nombre para iniciar';
-  render();
+  prepararTableroBloqueado(nombre ? 'Presiona Start para iniciar' : 'Escribe tu nombre para iniciar', true);
 }
 
 function voltearCarta(indice) {
@@ -484,6 +529,8 @@ function contarParesEncontrados(cartas) {
 }
 
 function iniciarMusica(reiniciar) {
+  musica.muted = state.audioMuteado;
+
   if (reiniciar) {
     musica.currentTime = 0;
   }
@@ -496,6 +543,22 @@ function iniciarMusica(reiniciar) {
 function detenerMusica() {
   musica.pause();
   musica.currentTime = 0;
+}
+
+function alternarAudio() {
+  state.audioMuteado = !state.audioMuteado;
+  musica.muted = state.audioMuteado;
+  guardarAudio();
+  actualizarBotonAudio();
+}
+
+function cargarAudio() {
+  state.audioMuteado = localStorage.getItem(AUDIO_KEY) === 'true';
+  musica.muted = state.audioMuteado;
+}
+
+function guardarAudio() {
+  localStorage.setItem(AUDIO_KEY, String(state.audioMuteado));
 }
 
 function esCartaValida(carta) {
