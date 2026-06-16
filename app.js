@@ -5,9 +5,14 @@ const NIVELES = [
 ];
 const STORAGE_KEY = 'juego-memoria-partida';
 const HISTORY_KEY = 'juego-memoria-historial';
+const AUDIO_SRC = 'cancion_juego.mp3';
 const ICONOS = crearIconos(Math.max.apply(null, NIVELES.map(function (nivel) {
   return nivel.pares;
 })));
+const musica = new Audio(AUDIO_SRC);
+
+musica.loop = true;
+musica.volume = 0.35;
 
 const state = {
   cartas: [],
@@ -16,6 +21,7 @@ const state = {
   nombre: '',
   bloqueado: false,
   paresEncontrados: 0,
+  iniciado: false,
   nivel: NIVELES[0]
 };
 
@@ -42,19 +48,31 @@ renderNiveles();
 renderHistorial();
 
 if (!cargarPartida()) {
-  iniciarJuego();
+  render();
+  mensaje.textContent = 'Escribe tu nombre y presiona Start';
 }
 
 function iniciarJuego() {
+  const nombre = inputNombre.value.trim();
+
+  if (!nombre) {
+    state.iniciado = false;
+    mensaje.textContent = 'Escribe tu nombre para iniciar';
+    inputNombre.focus();
+    return;
+  }
+
   state.cartas = crearMazo();
   state.volteadas = [];
   state.movimientos = 0;
-  state.nombre = inputNombre.value.trim() || 'jugador';
+  state.nombre = nombre;
   state.bloqueado = false;
   state.paresEncontrados = 0;
+  state.iniciado = true;
   mensaje.textContent = '';
   render();
   guardarPartida();
+  iniciarMusica();
 }
 
 function crearMazo() {
@@ -163,6 +181,11 @@ function renderNiveles() {
 }
 
 function manejarClickTablero(event) {
+  if (!state.iniciado) {
+    mensaje.textContent = 'Presiona Start o Enter para iniciar';
+    return;
+  }
+
   const carta = event.target.closest('.card');
 
   if (!carta || !tablero.contains(carta)) {
@@ -173,6 +196,11 @@ function manejarClickTablero(event) {
 }
 
 function manejarTeclado(event) {
+  if (event.key === 'Enter') {
+    iniciarJuego();
+    return;
+  }
+
   if (event.key.toLowerCase() === 'r') {
     iniciarJuego();
   }
@@ -193,7 +221,7 @@ function manejarCambioNivel(event) {
     return;
   }
 
-      state.nivel = nivelElegido;
+  state.nivel = nivelElegido;
   iniciarJuego();
 }
 
@@ -206,12 +234,16 @@ function actualizarBotonesNivel() {
 }
 
 function actualizarNombre() {
-  state.nombre = inputNombre.value.trim() || 'jugador';
+  state.nombre = inputNombre.value.trim();
   guardarPartida();
 }
 
 function voltearCarta(indice) {
   const carta = state.cartas[indice];
+
+  if (!state.iniciado) {
+    return;
+  }
 
   // BUG: el código auditado permitía una tercera carta durante el setTimeout.
   // FIX: el bloqueo vive en el estado y corta nuevos clicks hasta resolver el turno.
@@ -354,6 +386,7 @@ function guardarPartida() {
     movimientos: state.movimientos,
     nombre: state.nombre,
     paresEncontrados: state.paresEncontrados,
+    iniciado: state.iniciado,
     nivelId: state.nivel.id
   };
 
@@ -381,12 +414,13 @@ function cargarPartida() {
     state.cartas = partida.cartas;
     state.volteadas = Array.isArray(partida.volteadas) ? partida.volteadas : [];
     state.movimientos = Number(partida.movimientos) || 0;
-    state.nombre = partida.nombre || 'jugador';
+    state.nombre = typeof partida.nombre === 'string' ? partida.nombre : '';
     state.bloqueado = false;
     state.paresEncontrados = contarParesEncontrados(state.cartas);
+    state.iniciado = partida.iniciado !== false;
     state.nivel = nivel;
 
-    inputNombre.value = state.nombre === 'jugador' ? '' : state.nombre;
+    inputNombre.value = state.nombre;
     render();
     guardarPartida();
     return true;
@@ -400,6 +434,13 @@ function contarParesEncontrados(cartas) {
   return cartas.filter(function (carta) {
     return carta.encontrada;
   }).length / 2;
+}
+
+function iniciarMusica() {
+  musica.currentTime = 0;
+  musica.play().catch(function () {
+    mensaje.textContent = 'Juego iniciado. Activa el audio si el navegador lo bloqueo.';
+  });
 }
 
 function esCartaValida(carta) {
