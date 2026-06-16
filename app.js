@@ -1,4 +1,9 @@
-const EMOJIS = ['🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕'];
+const EMOJIS = ['🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕', '🐸', '⭐', '🍩', '🦊', '🎮', '🌙', '💎', '🔥'];
+const NIVELES = [
+  { id: 1, nombre: 'Facil', icono: '◆', pares: 8 },
+  { id: 2, nombre: 'Medio', icono: '▲', pares: 12 },
+  { id: 3, nombre: 'Dificil', icono: '★', pares: 16 }
+];
 
 const state = {
   cartas: [],
@@ -6,13 +11,16 @@ const state = {
   movimientos: 0,
   nombre: '',
   bloqueado: false,
-  paresEncontrados: 0
+  paresEncontrados: 0,
+  nivel: NIVELES[0]
 };
 
 const tablero = document.getElementById('tablero');
+const niveles = document.getElementById('niveles');
 const inputNombre = document.getElementById('nombre');
 const botonIniciar = document.getElementById('iniciar');
 const botonReiniciar = document.getElementById('reiniciar');
+const contadorNivel = document.getElementById('nivel');
 const contadorMovimientos = document.getElementById('movimientos');
 const contadorPares = document.getElementById('pares');
 const mensaje = document.getElementById('mensaje');
@@ -22,8 +30,10 @@ botonReiniciar.addEventListener('click', iniciarJuego);
 inputNombre.addEventListener('change', actualizarNombre);
 // FIX: delegación de eventos; no se crea un listener por cada carta en cada render.
 tablero.addEventListener('click', manejarClickTablero);
+niveles.addEventListener('click', manejarCambioNivel);
 document.addEventListener('keydown', manejarTeclado);
 
+renderNiveles();
 iniciarJuego();
 
 function iniciarJuego() {
@@ -39,8 +49,9 @@ function iniciarJuego() {
 
 function crearMazo() {
   const mazo = [];
+  const emojisDelNivel = EMOJIS.slice(0, state.nivel.pares);
 
-  EMOJIS.forEach(function (emoji) {
+  emojisDelNivel.forEach(function (emoji) {
     mazo.push({ emoji: emoji, encontrada: false });
     mazo.push({ emoji: emoji, encontrada: false });
   });
@@ -63,6 +74,8 @@ function barajar(mazo) {
 
 function render() {
   const fragmento = document.createDocumentFragment();
+
+  tablero.dataset.nivel = String(state.nivel.id);
 
   state.cartas.forEach(function (carta, indice) {
     const boton = document.createElement('button');
@@ -87,8 +100,27 @@ function render() {
   });
 
   tablero.replaceChildren(fragmento);
+  contadorNivel.textContent = String(state.nivel.id);
   contadorMovimientos.textContent = String(state.movimientos);
-  contadorPares.textContent = state.paresEncontrados + '/' + EMOJIS.length;
+  contadorPares.textContent = state.paresEncontrados + '/' + state.nivel.pares;
+  actualizarBotonesNivel();
+}
+
+function renderNiveles() {
+  const fragmento = document.createDocumentFragment();
+
+  NIVELES.forEach(function (nivel) {
+    const boton = document.createElement('button');
+
+    boton.type = 'button';
+    boton.className = 'level-btn';
+    boton.dataset.nivel = String(nivel.id);
+    boton.textContent = nivel.icono + ' ' + nivel.nombre;
+
+    fragmento.appendChild(boton);
+  });
+
+  niveles.replaceChildren(fragmento);
 }
 
 function manejarClickTablero(event) {
@@ -105,6 +137,33 @@ function manejarTeclado(event) {
   if (event.key.toLowerCase() === 'r') {
     iniciarJuego();
   }
+}
+
+function manejarCambioNivel(event) {
+  const boton = event.target.closest('.level-btn');
+
+  if (!boton || !niveles.contains(boton)) {
+    return;
+  }
+
+  const nivelElegido = NIVELES.find(function (nivel) {
+    return nivel.id === Number(boton.dataset.nivel);
+  });
+
+  if (!nivelElegido || nivelElegido.id === state.nivel.id) {
+    return;
+  }
+
+  state.nivel = nivelElegido;
+  iniciarJuego();
+}
+
+function actualizarBotonesNivel() {
+  niveles.querySelectorAll('.level-btn').forEach(function (boton) {
+    const activo = Number(boton.dataset.nivel) === state.nivel.id;
+    boton.classList.toggle('active', activo);
+    boton.setAttribute('aria-pressed', String(activo));
+  });
 }
 
 function actualizarNombre() {
