@@ -182,14 +182,16 @@ input {
 }
 
 .play-area {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 230px auto 230px;
+  align-items: start;
   justify-content: center;
-  gap: 18px;
+  column-gap: 18px;
   width: max-content;
 }
 
 .board {
+  grid-column: 2;
   display: grid;
   gap: 10px;
   padding: 16px;
@@ -256,6 +258,7 @@ input {
 }
 
 .history-panel {
+  grid-column: 3;
   width: 230px;
   max-height: 430px;
   overflow-y: auto;
@@ -390,6 +393,7 @@ input {
   }
 
   .play-area {
+    display: flex;
     flex-direction: column;
     align-items: center;
     width: max-content;
