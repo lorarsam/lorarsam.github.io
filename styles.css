@@ -300,11 +300,41 @@ input {
   width: 230px;
   max-height: 430px;
   overflow-y: auto;
+  scrollbar-color: var(--wood-dark) var(--cream);
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
   padding: 12px;
   background: var(--wood);
   border: 5px solid var(--wood-dark);
   border-radius: 6px;
   box-shadow: 5px 5px 0 var(--shadow), inset 0 0 0 3px var(--wood-light);
+}
+
+.history-panel::-webkit-scrollbar {
+  width: 14px;
+}
+
+.history-panel::-webkit-scrollbar-track {
+  background: var(--cream);
+  border-left: 3px solid var(--wood-dark);
+  box-shadow: inset 0 0 0 2px var(--cream-dark);
+}
+
+.history-panel::-webkit-scrollbar-thumb {
+  background: var(--wood-dark);
+  border: 3px solid var(--cream);
+  border-radius: 0;
+  box-shadow: inset 0 0 0 2px var(--wood-mid);
+}
+
+.history-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--shadow);
+}
+
+.history-panel::-webkit-scrollbar-button {
+  height: 14px;
+  background: var(--wood-light);
+  border-left: 3px solid var(--wood-dark);
 }
 
 .history-panel h2 {
