@@ -13,7 +13,8 @@ const ACTION_LABELS = {
 };
 const UI_ICONS = {
   play: 'iconos/play.svg',
-  mute: 'iconos/mute.svg'
+  mute: 'iconos/mute.svg',
+  egg: 'iconos/huevo.svg'
 };
 const ICONOS = crearIconos(Math.max.apply(null, NIVELES.map(function (nivel) {
   return nivel.pares;
@@ -45,9 +46,13 @@ const contadorMovimientos = document.getElementById('movimientos');
 const contadorPares = document.getElementById('pares');
 const mensaje = document.getElementById('mensaje');
 const historial = document.getElementById('historial');
+const botonHuevo = document.getElementById('easter-egg');
+const mensajeHuevo = document.getElementById('egg-message');
+let temporizadorHuevo = null;
 
 botonIniciar.addEventListener('click', manejarAccionPrincipal);
 botonAudio.addEventListener('click', alternarAudio);
+botonHuevo.addEventListener('click', mostrarMensajeHuevo);
 inputNombre.addEventListener('input', manejarCambioNombre);
 // FIX: delegación de eventos; no se crea un listener por cada carta en cada render.
 tablero.addEventListener('click', manejarClickTablero);
@@ -55,6 +60,7 @@ niveles.addEventListener('click', manejarCambioNivel);
 document.addEventListener('keydown', manejarTeclado);
 
 cargarAudio();
+renderBotonHuevo();
 renderNiveles();
 renderHistorial();
 
@@ -215,6 +221,10 @@ function crearIconoUI(src, alt) {
   icono.draggable = false;
 
   return icono;
+}
+
+function renderBotonHuevo() {
+  botonHuevo.replaceChildren(crearIconoUI(UI_ICONS.egg, 'Huevo secreto'));
 }
 
 function renderNiveles() {
@@ -559,6 +569,20 @@ function cargarAudio() {
 
 function guardarAudio() {
   localStorage.setItem(AUDIO_KEY, String(state.audioMuteado));
+}
+
+function mostrarMensajeHuevo() {
+  mensajeHuevo.textContent = 'Felicidades, eres un curioso!';
+  mensajeHuevo.classList.add('egg-message-visible');
+
+  if (temporizadorHuevo) {
+    clearTimeout(temporizadorHuevo);
+  }
+
+  temporizadorHuevo = setTimeout(function () {
+    mensajeHuevo.classList.remove('egg-message-visible');
+    mensajeHuevo.textContent = '';
+  }, 3200);
 }
 
 function esCartaValida(carta) {
