@@ -4,6 +4,7 @@ const NIVELES = [
   { id: 2, nombre: 'Medio', icono: '▲', pares: 12 },
   { id: 3, nombre: 'Dificil', icono: '★', pares: 16 }
 ];
+const STORAGE_KEY = 'juego-memoria-partida';
 
 const state = {
   cartas: [],
@@ -34,7 +35,10 @@ niveles.addEventListener('click', manejarCambioNivel);
 document.addEventListener('keydown', manejarTeclado);
 
 renderNiveles();
-iniciarJuego();
+
+if (!cargarPartida()) {
+  iniciarJuego();
+}
 
 function iniciarJuego() {
   state.cartas = crearMazo();
@@ -45,6 +49,7 @@ function iniciarJuego() {
   state.paresEncontrados = 0;
   mensaje.textContent = '';
   render();
+  guardarPartida();
 }
 
 function crearMazo() {
@@ -154,7 +159,7 @@ function manejarCambioNivel(event) {
     return;
   }
 
-  state.nivel = nivelElegido;
+      state.nivel = nivelElegido;
   iniciarJuego();
 }
 
@@ -168,6 +173,7 @@ function actualizarBotonesNivel() {
 
 function actualizarNombre() {
   state.nombre = inputNombre.value.trim() || 'jugador';
+  guardarPartida();
 }
 
 function voltearCarta(indice) {
@@ -187,6 +193,7 @@ function voltearCarta(indice) {
 
   state.volteadas.push(indice);
   render();
+  guardarPartida();
 
   if (state.volteadas.length === 2) {
     resolverTurno();
@@ -206,17 +213,20 @@ function resolverTurno() {
     state.volteadas = [];
     state.paresEncontrados++;
     render();
+    guardarPartida();
     revisarVictoria();
     return;
   }
 
   state.bloqueado = true;
   render();
+  guardarPartida();
 
   setTimeout(function () {
     state.volteadas = [];
     state.bloqueado = false;
     render();
+    guardarPartida();
   }, 800);
 }
 
@@ -228,4 +238,54 @@ function revisarVictoria() {
   // BUG: innerHTML con el nombre del jugador permite inyectar HTML o scripts.
   // FIX: textContent muestra el nombre como texto seguro.
   mensaje.textContent = 'Ganaste, ' + state.nombre + '!';
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function guardarPartida() {
+  const partida = {
+    cartas: state.cartas,
+    volteadas: state.bloqueado ? [] : state.volteadas,
+    movimientos: state.movimientos,
+    nombre: state.nombre,
+    paresEncontrados: state.paresEncontrados,
+    nivelId: state.nivel.id
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(partida));
+}
+
+function cargarPartida() {
+  const guardado = localStorage.getItem(STORAGE_KEY);
+
+  if (!guardado) {
+    return false;
+  }
+
+  try {
+    const partida = JSON.parse(guardado);
+    const nivel = NIVELES.find(function (item) {
+      return item.id === partida.nivelId;
+    });
+
+    if (!nivel || !Array.isArray(partida.cartas)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return false;
+    }
+
+    state.cartas = partida.cartas;
+    state.volteadas = Array.isArray(partida.volteadas) ? partida.volteadas : [];
+    state.movimientos = Number(partida.movimientos) || 0;
+    state.nombre = partida.nombre || 'jugador';
+    state.bloqueado = false;
+    state.paresEncontrados = Number(partida.paresEncontrados) || 0;
+    state.nivel = nivel;
+
+    inputNombre.value = state.nombre === 'jugador' ? '' : state.nombre;
+    render();
+    guardarPartida();
+    return true;
+  } catch (error) {
+    localStorage.removeItem(STORAGE_KEY);
+    return false;
+  }
 }
