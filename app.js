@@ -1,10 +1,12 @@
-const EMOJIS = ['🍎', '🚀', '🐱', '🌵', '🎲', '🎧', '⚽', '🍕', '🐸', '⭐', '🍩', '🦊', '🎮', '🌙', '💎', '🔥'];
 const NIVELES = [
   { id: 1, nombre: 'Facil', icono: '◆', pares: 8 },
   { id: 2, nombre: 'Medio', icono: '▲', pares: 12 },
   { id: 3, nombre: 'Dificil', icono: '★', pares: 16 }
 ];
 const STORAGE_KEY = 'juego-memoria-partida';
+const ICONOS = crearIconos(Math.max.apply(null, NIVELES.map(function (nivel) {
+  return nivel.pares;
+})));
 
 const state = {
   cartas: [],
@@ -54,14 +56,27 @@ function iniciarJuego() {
 
 function crearMazo() {
   const mazo = [];
-  const emojisDelNivel = EMOJIS.slice(0, state.nivel.pares);
+  const iconosDelNivel = ICONOS.slice(0, state.nivel.pares);
 
-  emojisDelNivel.forEach(function (emoji) {
-    mazo.push({ emoji: emoji, encontrada: false });
-    mazo.push({ emoji: emoji, encontrada: false });
+  iconosDelNivel.forEach(function (icono) {
+    mazo.push({ id: icono.id, src: icono.src, encontrada: false });
+    mazo.push({ id: icono.id, src: icono.src, encontrada: false });
   });
 
   return barajar(mazo);
+}
+
+function crearIconos(total) {
+  const iconos = [];
+
+  for (let i = 1; i <= total; i++) {
+    iconos.push({
+      id: i,
+      src: 'iconos/' + i + '.svg'
+    });
+  }
+
+  return iconos;
 }
 
 function barajar(mazo) {
@@ -91,7 +106,12 @@ function render() {
     boton.className = 'card';
     boton.dataset.indice = indice;
     boton.setAttribute('aria-label', visible ? 'Carta revelada' : 'Carta oculta');
-    boton.textContent = visible ? carta.emoji : '?';
+
+    if (visible) {
+      boton.appendChild(crearImagenCarta(carta));
+    } else {
+      boton.textContent = '?';
+    }
 
     if (visible) {
       boton.classList.add('volteada');
@@ -109,6 +129,17 @@ function render() {
   contadorMovimientos.textContent = String(state.movimientos);
   contadorPares.textContent = state.paresEncontrados + '/' + state.nivel.pares;
   actualizarBotonesNivel();
+}
+
+function crearImagenCarta(carta) {
+  const imagen = document.createElement('img');
+
+  imagen.className = 'card-icon';
+  imagen.src = carta.src;
+  imagen.alt = 'Icono de pareja ' + carta.id;
+  imagen.draggable = false;
+
+  return imagen;
 }
 
 function renderNiveles() {
@@ -207,7 +238,7 @@ function resolverTurno() {
 
   // BUG: antes se comparaba leyendo textContent del DOM.
   // FIX: la comparación usa state.cartas, la fuente única de verdad.
-  if (state.cartas[a].emoji === state.cartas[b].emoji) {
+  if (state.cartas[a].id === state.cartas[b].id) {
     state.cartas[a].encontrada = true;
     state.cartas[b].encontrada = true;
     state.volteadas = [];
@@ -267,7 +298,7 @@ function cargarPartida() {
       return item.id === partida.nivelId;
     });
 
-    if (!nivel || !Array.isArray(partida.cartas)) {
+    if (!nivel || !Array.isArray(partida.cartas) || !partida.cartas.every(esCartaValida)) {
       localStorage.removeItem(STORAGE_KEY);
       return false;
     }
@@ -294,4 +325,8 @@ function contarParesEncontrados(cartas) {
   return cartas.filter(function (carta) {
     return carta.encontrada;
   }).length / 2;
+}
+
+function esCartaValida(carta) {
+  return typeof carta.id === 'number' && typeof carta.src === 'string' && typeof carta.encontrada === 'boolean';
 }

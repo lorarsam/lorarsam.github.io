@@ -218,6 +218,15 @@ input {
   box-shadow: 4px 4px 0 var(--shadow), inset 0 -5px 0 var(--cream-dark), inset 0 4px 0 var(--white);
 }
 
+.card-icon {
+  display: block;
+  width: min(72%, 44px);
+  height: min(72%, 56px);
+  object-fit: contain;
+  pointer-events: none;
+  image-rendering: auto;
+}
+
 .card:hover {
   filter: brightness(1.06);
   transform: translateY(-1px);
@@ -343,6 +352,11 @@ input {
   .card {
     width: 54px;
     height: 70px;
+  }
+
+  .card-icon {
+    width: min(72%, 38px);
+    height: min(72%, 48px);
   }
 
   .level-nav {
