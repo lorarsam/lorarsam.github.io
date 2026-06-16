@@ -277,7 +277,7 @@ function cargarPartida() {
     state.movimientos = Number(partida.movimientos) || 0;
     state.nombre = partida.nombre || 'jugador';
     state.bloqueado = false;
-    state.paresEncontrados = Number(partida.paresEncontrados) || 0;
+    state.paresEncontrados = contarParesEncontrados(state.cartas);
     state.nivel = nivel;
 
     inputNombre.value = state.nombre === 'jugador' ? '' : state.nombre;
@@ -288,4 +288,10 @@ function cargarPartida() {
     localStorage.removeItem(STORAGE_KEY);
     return false;
   }
+}
+
+function contarParesEncontrados(cartas) {
+  return cartas.filter(function (carta) {
+    return carta.encontrada;
+  }).length / 2;
 }
