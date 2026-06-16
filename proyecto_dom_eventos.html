@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proyecto — DOM &amp; Eventos · Construye · Audita · Defiende</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161a17;
+    --paper:#edeae1;
+    --paper-2:#e4e0d4;
+    --js:#f0c000;          /* guiño a la marca JavaScript: negro + amarillo */
+    --js-deep:#caa200;
+    --slate:#222c30;
+    --slate-soft:#33424a;
+    --line:#cfc9ba;
+    --bug:#c4452f;
+    --ok:#3c7a52;
+    --mut:#6c6859;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --body:'Inter',system-ui,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);line-height:1.6;font-size:16px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:0 24px}
+
+  /* HERO */
+  header.hero{padding:64px 0 40px;border-bottom:3px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--mut);margin:0 0 20px}
+  .mark{display:inline-flex;align-items:center;gap:14px;margin-bottom:26px}
+  .js-badge{width:54px;height:54px;background:var(--ink);color:var(--js);
+    font-family:var(--display);font-weight:700;font-size:1.5rem;
+    display:flex;align-items:center;justify-content:center;border-radius:8px}
+  .js-badge small{font-size:.62rem;align-self:flex-end;margin-bottom:7px;margin-left:-3px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(2.3rem,6vw,3.6rem);
+    line-height:1.02;margin:0;letter-spacing:-.02em}
+  h1 .sep{color:var(--js-deep);font-weight:500}
+  .lede{font-size:1.12rem;margin:22px 0 0;max-width:60ch;color:var(--slate)}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;font-family:var(--mono);font-size:.78rem}
+  .meta span{background:var(--paper-2);border:1px solid var(--line);
+    padding:6px 12px;border-radius:999px;color:var(--slate)}
+
+  /* SECTIONS */
+  section{padding:48px 0;border-bottom:1px solid var(--line)}
+  h2{font-family:var(--display);font-weight:600;font-size:1.55rem;margin:0 0 4px;letter-spacing:-.01em}
+  .h2-row{display:flex;align-items:baseline;gap:16px;margin-bottom:24px}
+  .num{font-family:var(--mono);font-weight:700;font-size:1.1rem;color:var(--js-deep);
+    border:2px solid var(--ink);border-radius:6px;padding:3px 9px;flex:none}
+  .sub{color:var(--mut);font-size:.95rem;margin:-2px 0 0}
+  h3{font-family:var(--display);font-weight:600;font-size:1.05rem;margin:26px 0 8px}
+  ul{margin:8px 0 0;padding-left:22px}
+  li{margin:6px 0}
+  li strong{font-weight:600}
+  code{font-family:var(--mono);font-size:.86em;background:var(--paper-2);
+    padding:1px 6px;border-radius:4px;border:1px solid var(--line)}
+  p{margin:10px 0}
+
+  /* CALLOUT IA */
+  .callout{background:var(--ink);color:var(--paper);border-radius:12px;
+    padding:26px 28px;margin:8px 0 0}
+  .callout h3{color:var(--js);margin-top:0}
+  .callout code{background:#2a2f2b;border-color:#3a4039;color:#f3efe4}
+  .callout ul{margin-top:10px}
+
+  /* CONSTRAINTS BOX */
+  .teeth{background:var(--paper-2);border:1px solid var(--line);
+    border-left:4px solid var(--js-deep);border-radius:0 10px 10px 0;padding:20px 24px;margin-top:18px}
+  .teeth h3{margin-top:0}
+
+  /* CODE BLOCK */
+  .editor{background:var(--slate);border-radius:12px;overflow:hidden;margin:18px 0 0;
+    box-shadow:0 10px 30px -16px rgba(0,0,0,.5)}
+  .editor-bar{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--slate-soft)}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .dot.r{background:#e0625a}.dot.y{background:var(--js)}.dot.g{background:#62b07a}
+  .editor-bar .fname{font-family:var(--mono);font-size:.76rem;color:#aeb8bb;margin-left:8px}
+  pre{margin:0;padding:20px;overflow-x:auto;color:#e7ecec;
+    font-family:var(--mono);font-size:.81rem;line-height:1.7;tab-size:2}
+  pre .cm{color:#7e9b88}
+  pre .kw{color:var(--js)}
+  pre .st{color:#e6b486}
+
+  /* RUBRIC */
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:.92rem}
+  th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--mut);border-bottom:2px solid var(--ink)}
+  td.peso{font-family:var(--display);font-weight:700;font-size:1.05rem;white-space:nowrap}
+  tr:last-child td{border-bottom:2px solid var(--ink)}
+  .total td{font-weight:600}
+
+  /* DELIVERABLES */
+  .files{font-family:var(--mono);font-size:.86rem;background:var(--paper-2);
+    border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin-top:10px}
+  .files div{padding:3px 0}
+  .files .c{color:var(--mut)}
+
+  footer{padding:40px 0 70px;color:var(--mut);font-family:var(--mono);font-size:.78rem}
+
+  @media (max-width:560px){
+    .h2-row{gap:12px}
+    header.hero{padding:44px 0 32px}
+  }
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  a{color:var(--ink);text-underline-offset:3px}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Programación Front End · TI3V31 · Proyecto domiciliario</p>
+    <div class="mark">
+      <div class="js-badge">JS<small>()</small></div>
+      <span style="font-family:var(--mono);font-size:.8rem;color:var(--mut)">vanilla · sin frameworks · sin librerías</span>
+    </div>
+    <h1>Construye <span class="sep">·</span> Audita <span class="sep">·</span> Defiende</h1>
+    <p class="lede">Una mini-app interactiva con DOM y eventos. Puedes (y deberías) usar IA. La nota no es por escribir código: es por <strong>hacerlo cumplir restricciones, detectar cuándo la IA se equivoca y justificar tus decisiones</strong>.</p>
+    <div class="meta">
+      <span>JS vanilla</span><span>DOM + Eventos</span><span>Individual</span><span>~6–8 h</span><span>Entrega: 1 semana</span>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="callout">
+      <h3>Reglas sobre el uso de IA</h3>
+      <p style="margin-top:6px">Asumimos que una IA puede escribir un gestor de tareas en segundos. Por eso eso <em>no</em> es lo que se evalúa. Lo que se evalúa es tu criterio:</p>
+      <ul>
+        <li>Usa la IA libremente para escribir, explicar o depurar.</li>
+        <li>Pero <strong>tú respondes por cada línea</strong> que entregues: si no la entiendes, no la entregues.</li>
+        <li>En la Parte 3 deberás declarar dónde te ayudó la IA y dónde te dio código <em>malo o incorrecto</em> que tuviste que corregir. Decir "no me equivoqué en nada" es una mala señal.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="h2-row">
+      <span class="num">01</span>
+      <div><h2>Construye</h2><p class="sub">Un solo producto, en JS vanilla. El reto está en la coordinación de eventos.</p></div>
+    </div>
+
+    <p><strong>El producto es un Juego de Memoria (Concentración).</strong> Un tablero de cartas boca abajo; volteas dos por turno; si forman pareja se quedan reveladas, si no, se vuelven a ocultar. Parece simple, pero es el más exigente del temario: obliga a manejar <strong>eventos asíncronos y estado de bloqueo</strong>, que es donde el código generado por IA suele fallar en silencio.</p>
+
+    <h3>Requisitos funcionales</h3>
+    <ul>
+      <li>Tablero generado <strong>dinámicamente desde el estado</strong> y <strong>barajado</strong> al iniciar (p. ej. 8 parejas = 16 cartas).</li>
+      <li>Voltear una carta con click (vía delegación) y mostrar su contenido.</li>
+      <li>Comparar de a dos: si coinciden, quedan reveladas; si no, se ocultan tras un breve retardo (<code>setTimeout</code>).</li>
+      <li><strong>Bloquear el tablero mientras se resuelve el par</strong>: no se puede voltear una tercera carta, ni re-voltear la misma, durante la animación. <em>Aquí está el desafío central.</em></li>
+      <li>Contador de <strong>movimientos</strong> (y/o cronómetro) y <strong>detección de victoria</strong> cuando se encuentran todas las parejas.</li>
+      <li>Botón de <strong>reinicio</strong> que vuelve a barajar y resetea el estado.</li>
+      <li>Al menos <strong>dos tipos de evento además de <code>click</code></strong> (p. ej. <code>keydown</code> para reiniciar, <code>change</code> para elegir el tamaño/dificultad del tablero).</li>
+      <li>Retroalimentación visual: carta volteada, par encontrado, mensaje de victoria.</li>
+      <li><em>Bonus opcional:</em> niveles de dificultad y guardar el mejor puntaje con <code>localStorage</code>.</li>
+    </ul>
+
+    <p style="color:var(--mut);font-size:.9rem">Trampa típica que cazaremos: si <em>no</em> bloqueas bien el tablero, hacer click rápido en tres cartas o doble click sobre una misma carta rompe la lógica. Una IA casi siempre entrega esa versión frágil.</p>
+
+    <div class="teeth">
+      <h3>Restricciones de arquitectura (lo que de verdad cuesta)</h3>
+      <p style="margin-top:4px">Una IA arma la app sola; lo difícil es que respete <em>estas</em> reglas. Aquí está el desafío real:</p>
+      <ul>
+        <li><strong>Fuente única de verdad:</strong> hay un objeto/arreglo <code>state</code>; la UI siempre se dibuja <em>desde</em> el estado, nunca se lee <em>desde</em> el DOM.</li>
+        <li><strong>Delegación de eventos:</strong> un solo listener en el contenedor, <em>no</em> un listener por cada elemento.</li>
+        <li><strong>Nada de <code>innerHTML</code> con texto del usuario:</strong> usa <code>textContent</code> / <code>createElement</code> (previene XSS).</li>
+        <li><strong>El bloqueo del tablero es estado</strong> (p. ej. <code>state.bloqueado = true</code>), no un truco con clases del DOM ni con variables sueltas mal manejadas.</li>
+        <li><strong>Separación de responsabilidades:</strong> funciones distintas para <code>render()</code>, manejadores de eventos y mutaciones de estado. Nada de una función monstruo de 150 líneas.</li>
+        <li><strong>Sin <code>onclick=""</code> en el HTML.</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="h2-row">
+      <span class="num">02</span>
+      <div><h2>Audita</h2><p class="sub">Leer código de IA, encontrar lo que está mal y arreglarlo.</p></div>
+    </div>
+
+    <p>Te entregamos una versión <strong>funcional pero defectuosa</strong> de un juego de memoria —el mismo tipo de app que construyes en la Parte 1—, del tipo que escribiría una IA "a la rápida". Si juegas <em>despacio</em> parece correcto, pero esconde bugs y malas prácticas. Está en el archivo <code>parte2_codigo_para_auditar.html</code>.</p>
+
+    <p>Tu trabajo: documentar y <strong>corregir</strong> al menos uno de cada categoría, explicando <em>por qué</em> estaba mal:</p>
+    <ul>
+      <li><strong>Un bug funcional</strong> (p. ej. con clicks rápidos puedes voltear una tercera carta, o un doble click sobre una misma carta la hace "hacer pareja consigo misma": falta el bloqueo del turno).</li>
+      <li><strong>Un problema de seguridad</strong> (el mensaje de victoria inserta el nombre del jugador con <code>innerHTML</code> → XSS).</li>
+      <li><strong>Un olor de arquitectura o rendimiento</strong> (comparar leyendo el texto del DOM en vez del estado; un listener por carta recreado en cada render…).</li>
+    </ul>
+
+    <div class="editor">
+      <div class="editor-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="fname">parte2_codigo_para_auditar.html — fragmento</span>
+      </div>
+<pre><span class="cm">// "Funciona"... ¿pero qué pasa si haces click rápido o doble click?</span>
+<span class="kw">function</span> voltearCarta(div) {
+  <span class="kw">const</span> i = Number(div.dataset.indice);
+  div.textContent = cartas[i].emoji;
+  volteadas.push(i);
+
+  <span class="kw">if</span> (volteadas.length === 2) {
+    <span class="kw">const</span> a = volteadas[0], b = volteadas[1];
+    <span class="kw">const</span> divs = tablero.children;
+    <span class="kw">if</span> (divs[a].textContent === divs[b].textContent) {  <span class="cm">// ...¿y si a === b?</span>
+      cartas[a].encontrada = cartas[b].encontrada = <span class="kw">true</span>;
+      volteadas = [];
+    } <span class="kw">else</span> {
+      setTimeout(() =&gt; { <span class="cm">/* ...ocultar y limpiar... */</span> }, 800);
+    }
+  }
+}</pre>
+    </div>
+    <p style="margin-top:14px;color:var(--mut);font-size:.9rem">Pista: hay más de tres cosas mal. Encuentra todas las que puedas; basta con corregir y justificar una por categoría para aprobar la parte.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="h2-row">
+      <span class="num">03</span>
+      <div><h2>Defiende</h2><p class="sub">Una página de README justificando tus decisiones.</p></div>
+    </div>
+    <p>En <code>README.md</code> (máx. ~1 página) responde:</p>
+    <ul>
+      <li>¿Dónde te ayudó la IA y dónde te dio código incorrecto o de mala calidad que tuviste que corregir?</li>
+      <li>Justifica <strong>dos decisiones de diseño</strong> de tu app (p. ej. por qué delegación de eventos, por qué <code>textContent</code> en vez de <code>innerHTML</code>).</li>
+      <li>Una cosa que mejorarías con más tiempo.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="h2-row">
+      <span class="num">↳</span>
+      <div><h2>Entrega</h2><p class="sub">Se entrega el enlace a un repositorio público de GitHub.</p></div>
+    </div>
+    <p>Crea un <strong>repositorio público en GitHub</strong> y sube tu trabajo con <strong>commits incrementales</strong>: el historial debe mostrar tu proceso, no un único commit "subo todo". Lo que entregas es el <strong>enlace al repo</strong>. Debe poder abrirse con doble clic en <code>index.html</code>, sin paso de compilación.</p>
+    <div class="files">
+      <div>tu-repo/ <span class="c"># público en GitHub</span></div>
+      <div>├─ index.html <span class="c"># tu juego de memoria (Parte 1)</span></div>
+      <div>├─ styles.css <span class="c"># estilos</span></div>
+      <div>├─ app.js <span class="c"># lógica: state, render(), handlers, bloqueo</span></div>
+      <div>├─ parte2_corregido.html <span class="c"># Parte 2 arreglada + comentarios "// BUG:" / "// FIX:"</span></div>
+      <div>└─ README.md <span class="c"># Parte 3 (la defensa)</span></div>
+    </div>
+    <p style="margin-top:14px;color:var(--mut);font-size:.9rem"><em>Bonus opcional:</em> publica el juego con <strong>GitHub Pages</strong> y agrega el enlace en el <code>README.md</code>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="h2-row">
+      <span class="num">∑</span>
+      <div><h2>Rúbrica</h2><p class="sub">Se evalúan las tres dimensiones: construir, leer/corregir y criterio.</p></div>
+    </div>
+    <table>
+      <thead><tr><th>Criterio</th><th>Qué miramos</th><th>Peso</th></tr></thead>
+      <tbody>
+        <tr><td><strong>App funcional</strong><br>(Parte 1)</td><td>Cumple los requisitos funcionales, corre sin errores, maneja estado vacío y validación.</td><td class="peso">35%</td></tr>
+        <tr><td><strong>Lectura y corrección</strong><br>(Parte 2)</td><td>Identifica y arregla bugs reales; explica por qué estaban mal (1 por categoría mínimo).</td><td class="peso">25%</td></tr>
+        <tr><td><strong>Criterio y buenas prácticas</strong></td><td>Respeta las restricciones de arquitectura: fuente única de verdad, delegación, sin <code>innerHTML</code> con datos de usuario, código separado.</td><td class="peso">25%</td></tr>
+        <tr><td><strong>Defensa</strong><br>(Parte 3)</td><td>Justificación honesta y técnica de decisiones y del uso de IA.</td><td class="peso">15%</td></tr>
+        <tr class="total"><td>Total</td><td></td><td class="peso">100%</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:18px;color:var(--mut);font-size:.9rem">Penalización: usar un framework/librería, dejar <code>onclick=""</code> en el HTML, entregar código que no sabes explicar, o un repo con un solo commit "subo todo" (el historial debe reflejar tu avance).</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    TI3V31 — Programación Front End · Semana DOM &amp; Eventos · El objetivo no es teclear código: es tener el criterio para mandar.
+  </div>
+</footer>
+</body>
+</html>
