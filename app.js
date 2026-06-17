@@ -6,15 +6,16 @@ const NIVELES = [
 const STORAGE_KEY = 'juego-memoria-partida';
 const HISTORY_KEY = 'juego-memoria-historial';
 const AUDIO_KEY = 'juego-memoria-audio-muteado';
-const AUDIO_SRC = 'cancion_juego.mp3';
+const RECURSOS_PATH = 'recursos/';
+const AUDIO_SRC = RECURSOS_PATH + 'cancion_juego.mp3';
 const ACTION_LABELS = {
   start: 'Iniciar',
   reset: 'Reiniciar'
 };
 const UI_ICONS = {
-  play: 'iconos/play.svg',
-  mute: 'iconos/mute.svg',
-  egg: 'iconos/huevo.svg'
+  play: RECURSOS_PATH + 'play.svg',
+  mute: RECURSOS_PATH + 'mute.svg',
+  egg: RECURSOS_PATH + 'huevo.svg'
 };
 const ICONOS = crearIconos(Math.max.apply(null, NIVELES.map(function (nivel) {
   return nivel.pares;
@@ -141,7 +142,7 @@ function crearIconos(total) {
   for (let i = 1; i <= total; i++) {
     iconos.push({
       id: i,
-      src: 'iconos/' + i + '.svg'
+      src: RECURSOS_PATH + i + '.svg'
     });
   }
 
