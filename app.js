@@ -62,6 +62,9 @@ niveles.addEventListener('click', manejarCambioNivel);
 document.addEventListener('keydown', manejarTeclado);
 
 cargarAudio();
+precargarImagenes(ICONOS.map(function (icono) {
+  return icono.src;
+}).concat(Object.values(UI_ICONS)));
 renderBotonHuevo();
 renderNiveles();
 renderHistorial();
@@ -214,6 +217,13 @@ function crearImagenCarta(carta) {
   imagen.draggable = false;
 
   return imagen;
+}
+
+function precargarImagenes(rutas) {
+  rutas.forEach(function (ruta) {
+    const imagen = new Image();
+    imagen.src = ruta;
+  });
 }
 
 function crearIconoUI(src, alt) {
